@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Demon Slayer</title>
+  <style>
+    :root{
+      --bg-dark:#03040a;
+      --card:#0e1116;
+      --muted:#aeb9d0;
+      --accent:#ff2e2e;
+      --accent-2:#8b0000;
+      --glass: rgba(255,255,255,0.03);
+      --card-shadow: 0 24px 70px rgba(2,6,23,0.65);
+      color-scheme: dark;
+      font-family: Inter, "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:radial-gradient(ellipse at center, #12040a 0%, #03020a 60%);color:#f0f6ff;-webkit-font-smoothing:antialiased}
+    a{color:inherit}
+    /* background canvas sits below everything */
+    #bg {position:fixed;inset:0;z-index:0;pointer-events:none}
+    .wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:36px 18px;position:relative;overflow:hidden}
+    .container{position:relative;z-index:2;max-width:1200px;width:100%}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:60px;height:60px;border-radius:12px;background:linear-gradient(135deg,#8b0000,#ff2e2e);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;box-shadow:0 12px 40px rgba(139,0,0,0.18);font-family:monospace}
+    h1{font-size:22px;margin:0}
+    p.lead{margin:0;color:var(--muted);font-size:13px}
+    .controls{display:flex;gap:10px;align-items:center}
+    .search{background:rgba(255,255,255,0.02);padding:8px 12px;border-radius:12px;display:flex;gap:8px;align-items:center}
+    .search input{background:transparent;border:0;outline:none;color:inherit;width:220px}
+    .btn{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px 12px;border-radius:10px;color:var(--muted);cursor:pointer}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px;margin-top:10px}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.02));border-radius:14px;overflow:hidden;box-shadow:var(--card-shadow);transition:transform .35s cubic-bezier(.2,.9,.3,1),box-shadow .35s,opacity .45s;transform-origin:center center;border:1px solid rgba(255,255,255,0.02);opacity:0;transform:translateY(18px)}
+    .card.visible{opacity:1;transform:translateY(0)}
+    .card:hover{transform:translateY(-10px) scale(1.02);box-shadow:0 40px 110px rgba(2,6,23,0.75)}
+    .media{position:relative;height:300px;overflow:hidden;background:#081018}
+    .media img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .9s ease,filter .5s;filter:contrast(0.95) saturate(0.95)}
+    .card:hover .media img{transform:scale(1.08)}
+    .veins{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(139,0,0,0.06),rgba(255,46,46,0.02));mix-blend-mode:screen}
+    .glow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 20% 20%, rgba(255,46,46,0.06), transparent 10%), radial-gradient(circle at 80% 80%, rgba(139,0,0,0.04), transparent 14%)}
+    .body{padding:14px 14px 18px}
+    .name{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+    .name h2{margin:0;font-size:18px;color:#ffd6d6}
+    .rank{font-size:12px;color:var(--muted);margin-top:6px}
+    .score{background:linear-gradient(90deg,#ff5959,#8b0000);padding:6px 10px;border-radius:999px;font-weight:700;font-size:13px;color:#071022}
+    .desc{margin-top:8px;color:var(--muted);font-size:14px;line-height:1.5;max-height:78px;overflow:hidden}
+    .modal-backdrop{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.72);backdrop-filter:blur(6px);z-index:60;opacity:0;pointer-events:none;transition:.18s}
+    .modal-backdrop.open{opacity:1;pointer-events:auto}
+    .modal{width:min(980px,96%);max-height:86vh;overflow:auto;border-radius:12px;background:linear-gradient(180deg,#0b0e12,#07080a);padding:14px;border:1px solid rgba(255,255,255,0.03);display:flex;gap:12px}
+    .modal img{width:360px;height:460px;object-fit:cover;border-radius:10px;flex:0 0 360px}
+    .modal .info{flex:1;color:var(--muted)}
+    .modal .info h3{margin-top:0;color:#ffd6d6}
+    .tag{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.03);margin-right:8px;color:#f0f6ff;font-size:13px;margin-top:8px}
+    footer{margin-top:32px;text-align:center}.blood-footer{position:relative;font-size:15px;font-weight:600;letter-spacing:1px;color:#ff2e2e;text-shadow:0 0 6px #ff0000,0 0 12px #ff2e2e,0 0 24px #8b0000,0 0 36px #b30000;animation:pulseGlow 2.4s infinite ease-in-out;font-family:"Poppins",sans-serif}@keyframes pulseGlow{0%,100%{text-shadow:0 0 4px #ff1a1a,0 0 8px #ff2e2e,0 0 20px #8b0000,0 0 36px #b30000;color:#ff5a5a}50%{text-shadow:0 0 12px #ff0000,0 0 24px #ff2e2e,0 0 48px #8b0000,0 0 64px #b30000;color:#ff9999}}
+    @media (max-width:900px){.media{height:200px}.modal{flex-direction:column}.modal img{width:100%;height:300px;flex:none}}
+  </style>
+</head>
+<body>
+  <!-- Animated Blood Demon Art background (canvas) -->
+  <canvas id="bg"></canvas>
+
+  <div class="wrap">
+    <div class="container">
+      <header>
+        <div style="text-align:center;margin-top:30px;">
+    <h1 style="font-size:36px;color:#ff2e2e;text-shadow:0 0 8px #8b0000,0 0 18px #ff2e2e;font-family:'Poppins',sans-serif;letter-spacing:1px;">
+      Demon Slayer
+    </h1>
+  </div>
+  <div class="controls" style="width:100%;display:flex;justify-content:space-between;align-items:center;">
+    <div class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <input id="search" placeholder="Search demons, tags, ranks..." />
+  </div>
+</header>
+
+
+      <section class="grid" id="grid">
+        <!-- injected -->
+      </section>
+
+      <footer>
+  <p class="blood-footer">
+    © 𝟤𝟢𝟤𝟧 sᴧɴᴅᴇᴇᴘ sʜᴧʀᴍᴧ ᴧʟʟ ʀɪɢʜᴛs ʀᴇsᴇʀᴠᴇᴅ
+  </p>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="modalBackdrop" class="modal-backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalName">
+      <img id="modalImg" src="" alt="demon"/>
+      <div class="info">
+        <h3 id="modalName">Name</h3>
+        <div id="modalRank" style="font-weight:700;color:#fff;margin-bottom:8px"></div>
+        <p id="modalDesc" style="line-height:1.6"></p>
+        <div id="modalTags" style="margin-top:10px"></div>
+        <div style="text-align:right;margin-top:12px"><button id="modalClose" class="btn">Close</button></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- DEMONS DATA (all major demons) ----------
+    // NOTE: These image URLs are hosted publicly. Replace any that fail with your preferred images.
+    const DEMONS_DATA = [
+      {id:1,name:'Muzan Kibutsuji',img:'img/muzan.png',rank:'Original / Lord',strength:100,tags:['Origin','Regeneration','Blood Art'],desc:'The progenitor of all demons, with unmatched regeneration, shapeshifting and the ability to create demons using his blood.'},
+      {id:2,name:'Kokushibo',img:'img/kokushibo.png',rank:'Upper Rank 1',strength:99,tags:['Moon Breathing','Swordsmanship'],desc:'Former Demon Slayer turned demon. Master of Moon Breathing and extremely powerful.'},
+      {id:3,name:'Doma',img:'img/doma.png',rank:'Upper Rank 2',strength:94,tags:['Ice','Cult Leader'],desc:'Cold and charismatic demon using ice-like techniques. Manipulative and emotionless.'},
+      {id:4,name:'Akaza',img:'img/akaza.png',rank:'Upper Rank 3',strength:92,tags:['Martial Arts','Regeneration'],desc:'A brutal fighter who values strength — incredible close-quarters combat ability.'},
+      {id:5,name:'Hantengu',img:'img/hantengu.png',rank:'Upper Rank 4',strength:88,tags:['Clones','Emotions'],desc:'Splits into multiple emotional clones, each with distinct powers.'},
+      {id:6,name:'Gyokko',img:'img/gyokko.png',rank:'Upper Rank 5',strength:86,tags:['Water','Artisan'],desc:'A grotesque Upper Rank who uses water-based Blood Demon Art.'},
+      {id:7,name:'Gyutaro & Daki',img:'img/gyutaro_daki.png',rank:'Upper Rank 6',strength:85,tags:['Siblings','Venom','Sashes'],desc:'Deadly sibling pair — Gyutaro uses poison while Daki’s obi slices enemies.'},
+      {id:8,name:'Rui',img:'img/rui.png',rank:'Lower Rank 5',strength:76,tags:['Threads','Family'],desc:'Controls lethal threads and formed a false demon family.'},
+      {id:9,name:'Enmu',img:'img/enmu.png',rank:'Lower Rank 1',strength:65,tags:['Dreams','Train'],desc:'Manipulates dreams and merges with machinery to kill victims in their sleep.'},
+      {id:10,name:'Nakime',img:'img/nakime.png',rank:'Upper Rank (Musical)',strength:82,tags:['Music','Castle'],desc:'Can manipulate the Infinity Castle using her Biwa.'},
+      {id:11,name:'Kaigaku',img:'img/kaigaku.png',rank:'Upper Rank 6 (later)',strength:81,tags:['Thunder Breathing','Betrayal'],desc:'Former Demon Slayer who became a demon. Uses Thunder Breathing.'},
+      {id:12,name:'Kyogai',img:'img/kyogai.png',rank:'Lower Moon (former)',strength:62,tags:['Drums','Rooms'],desc:'Controls rooms with drum-based Blood Demon Art.'},
+      {id:13,name:'Rokuro',img:'img/rokuro.png',rank:'Lower Moon (former)',strength:60,tags:['Ambush','Strength'],desc:'Lower-rank demon known for hidden attacks and brute strength.'},
+      {id:14,name:'Wakuraba',img:'img/wakuraba.png',rank:'Lower Moon (former)',strength:58,tags:['Stealth','Minions'],desc:'Specialized in stealth and controlling lesser demons.'},
+      {id:15,name:'Mukago',img:'img/mukago.png',rank:'Lower Moon (former)',strength:56,tags:['Magma','Blood'],desc:'Lower moon demon with molten blood-like attacks.'}
+    ];
+
+    // ---------- fallback ----------
+    const FALLBACK_SVG = 'data:image/svg+xml;utf8,' +
+      '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800">' +
+      '<rect width="100%" height="100%" fill="#07080a"/>' +
+      '<text x="50%" y="50%" fill="#8b8fa3" font-size="28" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">Image not found - replace in DEMONS_DATA</text>' +
+      '</svg>';
+
+    // ---------- DOM refs ----------
+    const grid = document.getElementById('grid');
+    const search = document.getElementById('search');
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const modalImg = document.getElementById('modalImg');
+    const modalName = document.getElementById('modalName');
+    const modalDesc = document.getElementById('modalDesc');
+    const modalRank = document.getElementById('modalRank');
+    const modalTags = document.getElementById('modalTags');
+    const modalClose = document.getElementById('modalClose');
+
+    // create card
+    function createCard(d,i){
+      const a = document.createElement('article');
+      a.className = 'card';
+      a.setAttribute('tabindex','0');
+      a.innerHTML = `
+        <div class="media">
+          <img data-src="${d.img}" alt="${escapeHtml(d.name)}">
+          <div class="veins"></div>
+          <div class="glow"></div>
+        </div>
+        <div class="body">
+          <div class="name"><h2>${escapeHtml(d.name)}</h2></div>
+          <div class="rank">${escapeHtml(d.rank)}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+            <div class="desc">${escapeHtml(d.desc)}</div>
+            <div class="score" style="margin-left:10px">${d.strength}</div>
+          </div>
+        </div>
+      `;
+      a.addEventListener('click', ()=> openModal(d));
+      a.addEventListener('keydown', e => { if(e.key === 'Enter') openModal(d); });
+
+      // lazy load + fallback
+      const img = a.querySelector('img');
+      img.onerror = ()=> img.src = FALLBACK_SVG;
+      img.src = img.dataset.src;
+
+      return a;
+    }
+
+    // render
+    function render(q=''){
+      grid.innerHTML = '';
+      const filtered = DEMONS_DATA.filter(d => (d.name + d.tags.join(' ') + d.desc + d.rank).toLowerCase().includes(q.toLowerCase()));
+      if(filtered.length === 0){
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:40px">No demons found.</div>';
+        return;
+      }
+      filtered.forEach((d,i) => {
+        const c = createCard(d,i);
+        grid.appendChild(c);
+        setTimeout(()=> c.classList.add('visible'), 60 * i);
+      });
+    }
+
+    // modal
+    function openModal(d){
+      modalImg.src = d.img;
+      modalImg.onerror = ()=> modalImg.src = FALLBACK_SVG;
+      modalName.textContent = d.name;
+      modalDesc.textContent = d.desc;
+      modalRank.textContent = d.rank + ' — Strength: ' + d.strength;
+      modalTags.innerHTML = '';
+      (d.tags || []).forEach(t=>{
+        const s = document.createElement('span'); s.className='tag'; s.textContent = t; modalTags.appendChild(s);
+      });
+      modalBackdrop.classList.add('open');
+      modalBackdrop.setAttribute('aria-hidden','false');
+      setTimeout(()=> modalClose.focus(), 120);
+    }
+    function closeModal(){ modalBackdrop.classList.remove('open'); modalBackdrop.setAttribute('aria-hidden','true'); modalImg.src=''; }
+
+    modalClose.addEventListener('click', closeModal);
+    modalBackdrop.addEventListener('click', e=> { if(e.target === modalBackdrop) closeModal(); });
+    document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+
+    search.addEventListener('input', e => render(e.target.value));
+    render();
+
+    function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m])); }
+
+    // ---------- Blood Demon Art animated background ----------
+    (function(){
+      const canvas = document.getElementById('bg');
+      const ctx = canvas.getContext('2d');
+      let W = canvas.width = innerWidth;
+      let H = canvas.height = innerHeight;
+      window.addEventListener('resize', ()=> { W = canvas.width = innerWidth; H = canvas.height = innerHeight; });
+
+      // particles (embers)
+      const embers = [];
+      for(let i=0;i<120;i++){
+        embers.push({
+          x: Math.random()*W,
+          y: Math.random()*H,
+          r: 0.6 + Math.random()*2.4,
+          vx: (Math.random()-0.5)*0.4,
+          vy: -0.2 - Math.random()*0.6,
+          alpha: 0.02 + Math.random()*0.12
+        });
+      }
+
+      // veins: moving bezier-like paths
+      const veins = [];
+      function makeVein(){
+        const startX = Math.random()*W;
+        const startY = H + 50;
+        const cp1x = Math.random()*W;
+        const cp1y = H*Math.random()*0.6 + H*0.0;
+        const cp2x = Math.random()*W;
+        const cp2y = H*Math.random()*0.6 - H*0.4;
+        const endX = Math.random()*W;
+        const endY = -200;
+        veins.push({
+          startX,startY,cp1x,cp1y,cp2x,cp2y,endX,endY,
+          phase: Math.random()*Math.PI*2,
+          speed: 0.0004 + Math.random()*0.0009,
+          thickness: 0.6 + Math.random()*2.4,
+          colorShift: Math.random()
+        });
+        if(veins.length > 9) veins.shift();
+      }
+      for(let i=0;i<8;i++) makeVein();
+
+      function draw(){
+        ctx.clearRect(0,0,W,H);
+
+        // base red mist
+        const g = ctx.createLinearGradient(0,0,W,H);
+        g.addColorStop(0,'rgba(18,2,6,0.7)');
+        g.addColorStop(0.4,'rgba(30,6,6,0.38)');
+        g.addColorStop(1,'rgba(3,2,6,0.85)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0,0,W,H);
+
+        // soft glow center
+        const glow = ctx.createRadialGradient(W*0.5,H*0.4,10,W*0.5,H*0.45,Math.max(W,H));
+        glow.addColorStop(0,'rgba(255,40,40,0.06)');
+        glow.addColorStop(0.3,'rgba(255,10,10,0.02)');
+        glow.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle = glow;
+        ctx.fillRect(0,0,W,H);
+
+        // draw veins
+        veins.forEach((v, idx) => {
+          v.phase += v.speed * (1 + idx*0.04);
+          const osc = Math.sin(v.phase) * 120;
+          ctx.beginPath();
+          ctx.moveTo(v.startX, v.startY + Math.sin(v.phase*0.7)*40);
+          ctx.bezierCurveTo(v.cp1x + osc, v.cp1y + Math.cos(v.phase*0.9)*30, v.cp2x - osc, v.cp2y + Math.sin(v.phase*1.1)*30, v.endX, v.endY);
+          const grad = ctx.createLinearGradient(0,0,W,H);
+          grad.addColorStop(0, `rgba(180,20,20,${0.06 + Math.abs(Math.sin(v.phase))*0.08})`);
+          grad.addColorStop(0.6, `rgba(255,40,40,${0.02 + Math.abs(Math.cos(v.phase))*0.04})`);
+          grad.addColorStop(1, 'rgba(80,0,0,0)');
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = v.thickness + Math.abs(Math.sin(v.phase)) * 2;
+          ctx.lineCap = 'round';
+          ctx.stroke();
+        });
+
+        // embers
+        embers.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.alpha -= 0.0008;
+          if(p.alpha <= 0 || p.y < -10){
+            p.x = Math.random()*W;
+            p.y = H + Math.random()*120;
+            p.r = 0.6 + Math.random()*2.4;
+            p.vx = (Math.random()-0.5)*0.4;
+            p.vy = -0.2 - Math.random()*0.6;
+            p.alpha = 0.02 + Math.random()*0.12;
+          }
+          ctx.beginPath();
+          ctx.globalAlpha = Math.max(0.02, p.alpha);
+          ctx.fillStyle = 'rgba(255,120,80,1)';
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+          ctx.fill();
+        });
+
+        // occasionally add / morph veins
+        if(Math.random() > 0.985) makeVein();
+
+        ctx.globalAlpha = 1;
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    // small accessibility helpers
+    document.getElementById('theme').addEventListener('click', ()=>{
+      document.body.classList.toggle('light');
+    });
+
+    // ensure modal focus trap (basic)
+    document.addEventListener('focus', function(e){
+      const modalOpen = document.getElementById('modalBackdrop').classList.contains('open');
+      if(modalOpen && !document.getElementById('modalBackdrop').contains(e.target)){
+        e.stopPropagation();
+        document.getElementById('modalClose').focus();
+      }
+    }, true);
+  </script>
+</body>
+</html>
