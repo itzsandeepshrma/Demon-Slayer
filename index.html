@@ -58,9 +58,83 @@
     footer{margin-top:32px;text-align:center}.blood-footer{position:relative;font-size:15px;font-weight:600;letter-spacing:1px;color:#ff2e2e;text-shadow:0 0 6px #ff0000,0 0 12px #ff2e2e,0 0 24px #8b0000,0 0 36px #b30000;animation:pulseGlow 2.4s infinite ease-in-out;font-family:"Poppins",sans-serif}@keyframes pulseGlow{0%,100%{text-shadow:0 0 4px #ff1a1a,0 0 8px #ff2e2e,0 0 20px #8b0000,0 0 36px #b30000;color:#ff5a5a}50%{text-shadow:0 0 12px #ff0000,0 0 24px #ff2e2e,0 0 48px #8b0000,0 0 64px #b30000;color:#ff9999}}
     @media (max-width:900px){.media{height:200px}.modal{flex-direction:column}.modal img{width:100%;height:300px;flex:none}}
     .card img {width:100%;height:320px;object-fit:cover;border-top-left-radius:14px;border-top-right-radius:14px;box-shadow:0 0 12px rgba(255,0,0,0.45);transition:transform 0.4s ease,box-shadow 0.4s ease;}.card img:hover {transform:scale(1.04);box-shadow:0 0 25px rgba(255,0,0,0.7);}
+    /* Demon Slayer Loading Screen */
+#ds-loader {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, #190204, #050108 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeOutLoader 0.6s ease forwards;
+  animation-delay: 2.8s; /* Show loader for 3 sec */
+}
+
+#ds-loader .loader-content {
+  text-align: center;
+  animation: fadeIn 1s ease-out;
+}
+
+.loader-img {
+  width: 140px;
+  filter: drop-shadow(0 0 20px #ff0000);
+  animation: pulse 2s infinite ease-in-out;
+}
+
+.loader-title {
+  margin-top: 20px;
+  color: #ff2e2e;
+  font-size: 36px;
+  font-family: 'Poppins', sans-serif;
+  text-shadow: 0 0 8px #ff0000, 0 0 20px #b30000;
+  letter-spacing: 2px;
+  animation: fadeIn 2s;
+}
+
+.loader-ring {
+  margin: 32px auto 0 auto;
+  width: 70px;
+  height: 70px;
+  border: 4px solid rgba(255, 0, 0, 0.4);
+  border-top-color: #ff2e2e;
+  border-radius: 50%;
+  animation: spin 1.2s linear infinite;
+  filter: drop-shadow(0 0 12px #ff0000);
+}
+
+/* ANIMATIONS */
+@keyframes pulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 14px #ff0000); }
+  50% { transform: scale(1.08); filter: drop-shadow(0 0 26px #ff1a1a); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeOutLoader {
+  to { opacity: 0; visibility: hidden; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+    }
+    
   </style>
 </head>
 <body>
+  <!-- Demon Slayer Loading Screen -->
+<div id="ds-loader">
+  <div class="loader-content">
+    <img src="img/muzan.png" alt="Muzan" class="loader-img">
+    <h2 class="loader-title">Demon Slayer</h2>
+    <div class="loader-ring"></div>
+  </div>
+</div>
+  
   <!-- Animated Blood Demon Art background (canvas) -->
   <canvas id="bg"></canvas>
 
@@ -106,6 +180,26 @@
     </div>
   </div>
 
+
+  <script>
+  // Prevent scroll during loading
+  document.body.style.overflow = "hidden";
+
+  // Remove loader after fade animation completes
+  setTimeout(() => {
+    const loader = document.getElementById("ds-loader");
+    loader.style.display = "none";
+    document.body.style.overflow = "auto"; // re-enable scroll
+  }, 3300);
+  </script>
+
+
+
+
+
+
+
+  
   <script>
     // ---------- DEMONS DATA (all major demons) ----------
     // NOTE: These image URLs are hosted publicly. Replace any that fail with your preferred images.
