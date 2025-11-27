@@ -274,19 +274,16 @@ draw();
 // Disable scroll during loading
 document.body.style.overflow = "hidden";
 
-// Remove loader after 10 seconds
 setTimeout(() => {
-  document.getElementById("ds-loading").style.display = "none";
+  const loader = document.getElementById("ds-loading");
+  loader.style.opacity = "0";
+  loader.style.pointerEvents = "none";
+  loader.style.visibility = "hidden";
   document.body.style.overflow = "auto";
-}, 10000);
-</script>
+}, 3200);
+  </script>
 
-
-
-
-
-  
-  <script>
+    <script>
     // ---------- DEMONS DATA (all major demons) ----------
     // NOTE: These image URLs are hosted publicly. Replace any that fail with your preferred images.
     const DEMONS_DATA = [
